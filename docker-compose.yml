@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: tyme
+      POSTGRES_USER: tyme
+      POSTGRES_PASSWORD: 112002
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: tyme
+      DATABASE_PASSWORD: 112002
+      DATABASE_NAME: tyme
+      JWT_SECRET: tu_jwt_secreto_aquí
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: "http://host.docker.internal:3000"
+    ports:
+      - "5173:5173"
+
+volumes:
+  pgdata:
